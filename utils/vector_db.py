@@ -1,11 +1,26 @@
 import os
 import json
 import pickle
-import faiss
 import numpy as np
 from typing import List, Dict, Any, Optional, Tuple
 from sentence_transformers import SentenceTransformer
 import pandas as pd
+import torch
+import warnings
+
+# PyTorch 관련 경고 및 설정
+warnings.filterwarnings("ignore", category=FutureWarning)
+os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+
+# Faiss 임포트 시도 (실패시 None으로 설정)
+try:
+    import faiss
+    FAISS_AVAILABLE = True
+    print("faiss가 성공적으로 로드되었습니다.")
+except ImportError:
+    faiss = None
+    FAISS_AVAILABLE = False
+    print("Warning: faiss-cpu가 설치되지 않았습니다. 기본 벡터 검색을 사용합니다.")
 
 class VectorDBManager:
     def __init__(self, vector_db_path: str = "data/faiss_coupon_db", model_name: str = "nlpai-lab/KURE-v1"):
@@ -21,8 +36,18 @@ class VectorDBManager:
         self.index_path = os.path.join(vector_db_path, "index.faiss")
         self.metadata_path = os.path.join(vector_db_path, "index.pkl")
         
-        # 모델 로드
-        self.model = SentenceTransformer(model_name)
+        # 모델 로드 (PyTorch 호환성 문제 해결)
+        try:
+            # 기본 CPU 디바이스로 모델 로드
+            self.model = SentenceTransformer(model_name, device='cpu')
+        except Exception as e:
+            print(f"모델 로드 중 오류 발생, 재시도 중: {e}")
+            # 대안적 방법으로 모델 로드
+            import torch as torch_lib  # os 충돌을 피하기 위해 별명 사용
+            # PyTorch 백엔드 설정
+            torch_lib.set_default_dtype(torch_lib.float32)
+            os.environ['TOKENIZERS_PARALLELISM'] = 'false'
+            self.model = SentenceTransformer(model_name, device='cpu')
         
         # 벡터 DB 및 메타데이터 로드
         self.index = None
@@ -33,7 +58,11 @@ class VectorDBManager:
         """기존 벡터 DB가 있으면 로드"""
         if os.path.exists(self.index_path) and os.path.exists(self.metadata_path):
             print("기존 벡터 DB를 로드합니다...")
-            self.index = faiss.read_index(self.index_path)
+            if FAISS_AVAILABLE:
+                self.index = faiss.read_index(self.index_path)
+            else:
+                # Faiss가 없으면 numpy 배열로 로드
+                self.index = np.load(self.index_path.replace('.faiss', '.npy'))
             with open(self.metadata_path, 'rb') as f:
                 self.metadata = pickle.load(f)
             print(f"벡터 DB 로드 완료: {len(self.metadata)}개 문서")
