@@ -59,3 +59,8 @@ if __name__ == "__main__":
     test_summarize()
     test_agent_executor()
     print("===== ✅ 테스트 완료 =====")
+
+def test_parse_gyeonggi():
+    q = "경기도 상품권 종류 전부 알려줘"
+    cond = parse_conditions(q)
+    print("경기도 파싱 결과:", cond)
