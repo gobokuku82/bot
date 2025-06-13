@@ -44,7 +44,6 @@ tools = [
     filter_coupon_data,
     summarize_coupon_results,
     naver_local_search,
-    naver_search  
 ]
 
 
