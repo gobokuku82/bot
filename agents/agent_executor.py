@@ -13,13 +13,18 @@ from tools.llm_tool import summarize_results
 from tools.query_classifier import classify_query
 from dotenv import load_dotenv
 from tools.naver_search_tool import naver_local_search
+import streamlit as st
 
 load_dotenv()
+
+# OpenAI API 키 설정
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
 # ✅ 1. LLM 세팅
 llm = ChatOpenAI(
-    model="gpt-4o",
+    model="gpt-4",
     temperature=0,
     api_key=OPENAI_API_KEY
 )
