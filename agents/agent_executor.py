@@ -12,7 +12,6 @@ from tools.filter_tool import parse_conditions, load_jsonl, filter_jsonl_by_cond
 from tools.llm_tool import summarize_results
 from tools.query_classifier import classify_query
 from dotenv import load_dotenv
-from tools.naver_search_tool import naver_search
 from tools.naver_search_tool import naver_local_search
 
 load_dotenv()
