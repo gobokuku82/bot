@@ -8,7 +8,7 @@ import os
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 st.set_page_config(page_title="지역사랑상품권 챗봇", layout="wide")
-st.title("💬 지역사랑상품권 멀티턴 챗봇")
+st.title("💬 대동여지갑갑")
 
 # ✅ 세션 상태로 멀티턴 대화 유지
 if "chat_history" not in st.session_state:
