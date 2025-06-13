@@ -30,19 +30,28 @@ llm = ChatOpenAI(
 )
 
 # ✅ 2. Tool 정의
-
 @tool
 def filter_coupon_data(query: str) -> List[dict]:
     """질문에서 조건을 추출하고, JSONL 데이터를 조건에 맞게 필터링합니다."""
-    cond = parse_conditions(query)
-    data = load_jsonl("data/지역사랑상품권_긍정_부정전처리_cleaned.jsonl")
-    results = filter_jsonl_by_condition(data, cond)
-    return results[:30]  # 너무 많으면 일부만 리턴
+    try:
+        cond = parse_conditions(query)
+        data = load_jsonl("data/지역사랑상품권_긍정_부정전처리_cleaned.jsonl")
+        results = filter_jsonl_by_condition(data, cond)
+        return results[:30]  # 너무 많으면 일부만 리턴
+    except Exception as e:
+        return [{"error": str(e)}]
 
 @tool
-def summarize_coupon_results(results: List[dict]) -> str:
+def summarize_coupon_results(query: str) -> str:
     """필터링된 결과 리스트를 요약하여 설명해줍니다."""
-    return summarize_results(results)
+    try:
+        # 먼저 데이터를 필터링
+        results = filter_coupon_data(query)
+        if not results:
+            return "검색 결과가 없습니다."
+        return summarize_results(results)
+    except Exception as e:
+        return f"요약 중 오류가 발생했습니다: {str(e)}"
 
 # ✅ 3. Tool 목록 정의
 tools = [
