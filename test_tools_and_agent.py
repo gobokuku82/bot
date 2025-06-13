@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 # tools
 from tools.filter_tool import parse_conditions, load_jsonl, filter_jsonl_by_condition
 from tools.llm_tool import summarize_results
-
+from agents.agent_executor import route_query
 # agent
 from agents.agent_executor import agent_executor
 
@@ -50,7 +50,6 @@ def test_agent_executor():
 
     print("✅ 에이전트 응답:", response["output"])
 
-
 if __name__ == "__main__":
     print("===== Tool/Agent 단위 테스트 시작 =====")
     test_parse_conditions()
@@ -64,3 +63,9 @@ def test_parse_gyeonggi():
     q = "경기도 상품권 종류 전부 알려줘"
     cond = parse_conditions(q)
     print("경기도 파싱 결과:", cond)
+
+def test_router():
+    print("===== Hybrid 라우터 테스트 =====")
+    query = "모바일 되는 경기도 상품권 알려줘"
+    result = route_query(query)
+    print(result)

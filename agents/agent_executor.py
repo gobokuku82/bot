@@ -10,8 +10,10 @@ from langchain.memory import ConversationBufferMemory
 from langchain_openai import ChatOpenAI
 from tools.filter_tool import parse_conditions, load_jsonl, filter_jsonl_by_condition
 from tools.llm_tool import summarize_results
+from tools.query_classifier import classify_query
 from dotenv import load_dotenv
-
+from tools.naver_search_tool import naver_search
+from tools.naver_search_tool import naver_local_search
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -39,7 +41,13 @@ def summarize_coupon_results(results: List[dict]) -> str:
     return summarize_results(results)
 
 # ✅ 3. Tool 목록 정의
-tools = [filter_coupon_data]
+tools = [
+    filter_coupon_data,
+    summarize_coupon_results,
+    naver_local_search,
+    naver_search  
+]
+
 
 # ✅ 4. 멀티턴 메모리 설정
 memory = ConversationBufferMemory(
@@ -55,14 +63,12 @@ prompt = ChatPromptTemplate.from_messages([
     MessagesPlaceholder(variable_name="agent_scratchpad")
 ])
 
-
 # ✅ 수정된 agent 구성
 agent: Runnable = create_openai_functions_agent(
     llm=llm,
     tools=tools,
     prompt=prompt
 )
-
 
 # ✅ 6. AgentExecutor 생성
 agent_executor = AgentExecutor(
@@ -71,3 +77,19 @@ agent_executor = AgentExecutor(
     memory=memory,
     verbose=True
 )
+
+# 입력값 분기 처리 함수 (LLM 호출 전)
+def route_query(query: str):
+    classification = classify_query(query)
+    
+    if classification.query_type == "internal_search":
+        return agent_executor.invoke({"input": query})
+    
+    elif classification.query_type == "external_search":
+        return {"result": f"🔍 외부 검색 예정: '{query}' → Naver API 연동 예정"}
+    
+    elif classification.query_type == "calculator":
+        return {"result": f"🧮 계산기 호출 예정: '{query}'"}
+    
+    else:
+        return {"result": "⚠️ 알 수 없는 질문 유형입니다. 다시 입력해주세요."}
