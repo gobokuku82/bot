@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-st.set_page_config(page_title="지역사랑상품권 챗봇", layout="wide")
-st.title("💬 지역사랑상품권 멀티턴 챗봇")
+st.set_page_config(page_title="대 동 여 지 갑", layout="wide")
+st.title("💬 대 동 여 지 갑")
 
 # ✅ 세션 상태로 멀티턴 대화 유지
 if "chat_history" not in st.session_state:
